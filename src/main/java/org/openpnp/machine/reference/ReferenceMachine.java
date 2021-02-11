@@ -250,6 +250,10 @@ public class ReferenceMachine extends AbstractMachine {
     public void setMotionPlanner(MotionPlanner motionPlanner) {
         this.motionPlanner = motionPlanner;
     }
+    
+    public void setJobProcessor(PnpJobProcessor jobProcessor) {
+        this.pnpJobProcessor = jobProcessor;
+    }
 
     @Override
     public boolean isAutoToolSelect() {
@@ -408,6 +412,14 @@ public class ReferenceMachine extends AbstractMachine {
 
     private List<Class<? extends PartAlignment>> registeredAlignmentClasses = new ArrayList<>();
 
+    @Override
+    public List<Class<? extends PnpJobProcessor>> getCompatibleJobProcessorClasses() {
+        List<Class<? extends PnpJobProcessor>> l = new ArrayList<>();
+        l.add(ReferencePnpJobProcessor.class);
+        l.add(ReferencePasteJobProcessor.class);
+        return l;
+    }
+    
     protected MotionPlanner mootionPlanner;
 
     @Override

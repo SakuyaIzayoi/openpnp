@@ -180,6 +180,8 @@ public interface Machine extends WizardConfigurable, PropertySheetHolder, Closea
     public List<Class<? extends Driver>> getCompatibleDriverClasses();
 
     public List<Class<? extends MotionPlanner>> getCompatibleMotionPlannerClasses();
+    
+    public List<Class<? extends PnpJobProcessor>> getCompatibleJobProcessorClasses();
 
     public void addAxis(Axis axis) throws Exception;
 

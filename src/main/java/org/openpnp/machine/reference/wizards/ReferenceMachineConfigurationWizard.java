@@ -19,6 +19,7 @@ import org.openpnp.gui.support.MutableLocationProxy;
 import org.openpnp.machine.reference.ReferenceMachine;
 import org.openpnp.model.Configuration;
 import org.openpnp.spi.MotionPlanner;
+import org.openpnp.spi.PnpJobProcessor;
 
 import com.jgoodies.forms.layout.ColumnSpec;
 import com.jgoodies.forms.layout.FormLayout;
@@ -30,11 +31,13 @@ public class ReferenceMachineConfigurationWizard extends AbstractConfigurationWi
     private final ReferenceMachine machine;
     private JCheckBox checkBoxHomeAfterEnabled;
     private String motionPlannerClassName;
+    private String jobProcessorClassName;
     private JTextField discardXTf;
     private JTextField discardYTf;
     private JTextField discardZTf;
     private JTextField discardCTf;
     private JComboBox motionPlannerClass;
+    private JComboBox jobProcessorClass;
     private boolean reloadWizard;
     private JCheckBox autoToolSelect;
 
@@ -79,6 +82,13 @@ public class ReferenceMachineConfigurationWizard extends AbstractConfigurationWi
         .map(c -> c.getSimpleName()).toArray();
         motionPlannerClass = new JComboBox(classNames);
         panelGeneral.add(motionPlannerClass, "4, 6, fill, default");
+        
+        JLabel lblJobProcessor = new JLabel("Job Processor");
+        panelGeneral.add(lblJobProcessor, "2, 8, right, default");
+        Object[] jobProcessorClassNames = machine.getCompatibleJobProcessorClasses().stream()
+                .map(c -> c.getSimpleName()).toArray();
+        jobProcessorClass = new JComboBox(jobProcessorClassNames);
+        panelGeneral.add(jobProcessorClass, "4, 8, fill, default");
         
                 JPanel panelLocations = new JPanel();
         panelLocations.setBorder(new TitledBorder(null, "Locations", TitledBorder.LEADING,
@@ -145,6 +155,9 @@ public class ReferenceMachineConfigurationWizard extends AbstractConfigurationWi
 
         motionPlannerClassName = machine.getMotionPlanner().getClass().getSimpleName();
         addWrappedBinding(this, "motionPlannerClassName", motionPlannerClass, "selectedItem");
+        
+        jobProcessorClassName = machine.getPnpJobProcessor().getClass().getSimpleName();
+        addWrappedBinding(this, "jobProcessorClassName", jobProcessorClass, "selectedItem");
 
         MutableLocationProxy discardLocation = new MutableLocationProxy();
         bind(UpdateStrategy.READ_WRITE, machine, "discardLocation", discardLocation, "location");
@@ -162,6 +175,10 @@ public class ReferenceMachineConfigurationWizard extends AbstractConfigurationWi
     public String getMotionPlannerClassName() {
         return motionPlannerClassName;
     }
+    
+    public String getJobProcessorClassName() {
+        return jobProcessorClassName;
+    }
 
     public void setMotionPlannerClassName(String motionPlannerClassName) throws Exception {
         if (machine.getMotionPlanner().getClass().getSimpleName().equals(motionPlannerClassName)) {
@@ -175,6 +192,21 @@ public class ReferenceMachineConfigurationWizard extends AbstractConfigurationWi
                 reloadWizard = true;
                 break;
             }
+        }
+    }
+    
+    public void setJobProcessorClassName(String jobProcessorClassName) throws Exception {
+        if (machine.getPnpJobProcessor().getClass().getSimpleName().equals(jobProcessorClassName)) {
+            return;
+        }
+        for (Class<? extends PnpJobProcessor> jobProcessorClass : machine.getCompatibleJobProcessorClasses()) {
+        	if (jobProcessorClass.getSimpleName().equals(jobProcessorClassName)) {
+                PnpJobProcessor jobProcessor = (PnpJobProcessor) jobProcessorClass.newInstance();
+                machine.setJobProcessor(jobProcessor);
+                this.jobProcessorClassName = jobProcessorClassName;
+                reloadWizard = true;
+                break;
+        	}
         }
     }
 
